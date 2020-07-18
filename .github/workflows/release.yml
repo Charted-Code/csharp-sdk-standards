@@ -1,4 +1,4 @@
-name: .NET Core
+name: .NET Core Release
 
 on:
   release:
@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
       - name: Package NuGet
-        run: dotnet pack --configuration Release --no-restore --output . -p:Version="${GITHUB_REF##*/}"
+        run: dotnet pack --configuration Release --no-restore --output .
       - uses: actions/upload-artifact@v2
         with:
           name: "NuGet Packages"
@@ -28,5 +28,3 @@ jobs:
         run: dotnet nuget push *nupkg --skip-duplicate
       - name: Push to NuGet
         run: dotnet nuget push *nupkg --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-      - name: Publish
-        run: dotnet publish --configuration Release --no-restore --output publish -p:Version="${GITHUB_REF##*/}" --runtime win-x86
