@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn),1573,1591,1712,2008</NoWarn>
+    <Authors>David Ruhmann</Authors>
+    <Company>Charted Code</Company>
+    <PackageTags>dotnet;analyzers;git;sdk</PackageTags>
+    <Description>Charted Code C# Standards ruleset (using Roslynator analyzers) and a git versioning helper.</Description>
+    <PackageProjectUrl>https://github.com/TheChartedCode/csharp-sdk-standards</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TheChartedCode/csharp-sdk-standards</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Roslynator.Analyzers" Version="2.3.0" GeneratePathProperty="true">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\ChartedCode.Sdk.Standards.props" PackagePath="build" />
+    <Content Include="buildMultiTargeting\ChartedCode.Sdk.Standards.props" PackagePath="buildMultiTargeting" />
+    <Content Include="rulesets\*.*" PackagePath="rulesets" />
+  </ItemGroup>
+
+  <Import Project=".\build\ChartedCode.Sdk.Standards.props" />
+
+</Project>

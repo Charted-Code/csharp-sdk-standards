@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Rules for Charted Code" Description="Style and code analysis rules." ToolsVersion="15.0">
+  <Rules AnalyzerId="Roslynator.CSharp.Analyzers" RuleNamespace="Roslynator.CSharp.Analyzers">
+    <!-- See https://github.com/JosefPihrt/Roslynator/blob/master/src/Analyzers/README.md for rules and defaults -->
+    <!-- <Rule Id="RCS...." Action="None,Hidden,Info,Warning,Error" /> -->
+    <Rule Id="RCS1046" Action="Warning" /> <!-- Append Async-->
+    <Rule Id="RCS1090" Action="None" /> <!-- ConfigureAwait-->
+  </Rules>
+</RuleSet>

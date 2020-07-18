@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="..\build\ChartedCode.Sdk.Standards.props" />
+</Project>

@@ -1,0 +1,142 @@
+<Project InitialTargets="StandardsGitVersioning" TreatAsLocalProperty="GitFullPath;GitCommitHash;GitCommitHashShort;GitTagHere;GitTagVersion;MSBuildLastExitCode;OutdatedPackagesRaw;OutdatedPackages;_OutdatedPackages;_Errors;StartTicks;ElapsedTicks;Elapsed;_ExecCommand">
+
+  <!-- Git Tag Versioning -->
+  <Target Name="StandardsGitVersioning" Condition="'$(UseStandardsGitVersioning.ToLowerInvariant())' != 'false'">
+    <Exec Command="git rev-parse --verify HEAD 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitCommitHash Condition="'$(MSBuildLastExitCode)' != '0'"></GitCommitHash>
+    </PropertyGroup>
+    <Exec Command="git rev-parse --short HEAD 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHashShort" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitCommitHashShort Condition="'$(MSBuildLastExitCode)' != '0'"></GitCommitHashShort>
+    </PropertyGroup>
+    <Exec Command="git tag --points-at HEAD 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagHere" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitTagHere Condition="'$(MSBuildLastExitCode)' != '0'"></GitTagHere>
+    </PropertyGroup>
+    <Exec Command="git describe --abbrev=0 --tags 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagVersion" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitTagVersion Condition="'$(MSBuildLastExitCode)' != '0'"></GitTagVersion>
+    </PropertyGroup>
+    <Message Importance="High" Text="ChartedCode.Sdk.Standards: Project not using git. Specify UseStandardsGitVersioning = 'false' to disable." Condition="'$(GitCommitHash)' == ''" />
+    <Warning File="$(MSBuildThisFile)" Code="VERSION_IGNORED" Text="Ignoring any defined version properties since git versioning enabled. $(Version)" Condition="'$(Version)' != '1.0.0' Or '$(VersionPrefix)' != '1.0.0' Or '$(VersionSuffix)' != ''" />
+    <Warning File="$(MSBuildThisFile)" Code="NO_GIT_TAGS" Text="No tags exist on the repository. Defaulting to 0.0.0" Condition="'$(GitTagVersion)' == ''" />
+    <Message Importance="High" Text="ChartedCode.Sdk.Standards: No tag on this commit. Appending the short commit hash to the version. $(GitCommitHashShort)" Condition="'$(GitTagHere)' == ''" />
+    <PropertyGroup>
+      <GitTagVersion Condition="'$(GitTagVersion)' == ''">0.0.0</GitTagVersion>
+      <!-- NuGet does not allow semver 'v' character at the beginning of the version string. -->
+      <GitTagVersion Condition="'$(GitTagVersion.Substring(0, 1).ToUpperInvariant())' == 'V'">$(GitTagVersion.Substring(1))</GitTagVersion>
+      <!-- When this commit does not have a tag, then it is not a release and needs a pre-release tag using short commit hash. -->
+      <!-- Prefix the suffix with x since some semver 1.0 implementations only allow suffixes starting with alpha characters. -->
+      <VersionPrefix>$(GitTagVersion)</VersionPrefix>
+      <VersionSuffix></VersionSuffix>
+      <VersionSuffix Condition="'$(GitTagHere)' == '' And '$(GitCommitHashShort)' != ''">x$(GitCommitHashShort)</VersionSuffix>
+      <Version>$(VersionPrefix)</Version>
+      <Version Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
+      <PackageVersion>$(Version)</PackageVersion>
+      <Description Condition="'$(GitCommitHash)' != ''">$(Description) ($(GitCommitHash))</Description>
+      <Description>$(Description.Trim())</Description>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Outdated Packages Check -->
+  <PropertyGroup>
+    <CheckPackageVersions Condition="'$(CheckPackageVersions)' == ''">warn</CheckPackageVersions>
+    <!-- Disable when omnisharp is running a build -->
+    <CheckPackageVersions Condition="$(MSBuildExtensionsPath.Contains('omnisharp'))">false</CheckPackageVersions>
+    <CheckForDefault Condition="'$(CheckForDefault)' == ''">minor</CheckForDefault>
+  </PropertyGroup>
+
+  <!-- Ideally this would only run as a part of restore, requires https://github.com/NuGet/Home/issues/7617 -->
+  <Target Name="OutdatedPackageCheck" BeforeTargets="CoreCompile" Condition="'$(CheckPackageVersions)' != 'false'">
+    <PropertyGroup>
+      <StartTicks>$([System.DateTime]::UtcNow.Ticks)</StartTicks>
+    </PropertyGroup>
+    <Message Text="Checking for outdated packages for $(MSBuildProjectFullPath)." />
+    <!-- Get lists of the packages based on scope -->
+    <ItemGroup>
+      <CheckForLatest Include="%(PackageReference.Identity)" Condition="'$([System.String]::Copy(&quot;%(PackageReference.CheckFor)&quot;).ToLowerInvariant())' == 'latest'" />
+      <CheckForMinor Include="%(PackageReference.Identity)" Exclude="@(CheckForLatest)" Condition="'$([System.String]::Copy(&quot;%(PackageReference.CheckFor)&quot;).ToLowerInvariant())' == 'minor' Or '$(CheckForDefault.ToLowerInvariant())' == 'minor'" />
+      <!-- Append the packages when the default is latest excluding the ones specifically marked minor -->
+      <CheckForLatest Include="%(PackageReference.Identity)" Exclude="@(CheckForLatest);@(CheckForMinor)" Condition="'$(CheckForDefault.ToLowerInvariant())' == 'latest'" />
+      <NoCheckFor Include="%(PackageReference.Identity)" Exclude="@(CheckForLatest);@(CheckForMinor)" Condition="'@(CheckForLatest)@(CheckForMinor)' != '' Or '$(CheckForDefault.ToLowerInvariant())' == 'none'" />
+      <NoCheckFor Include="%(PackageReference.Identity)" Condition="'$([System.String]::Copy(&quot;%(PackageReference.CheckFor)&quot;).ToLowerInvariant())' == 'none'" />
+    </ItemGroup>
+    <Message Text="Packages marked for latest: @(CheckForLatest)" />
+    <Message Text="Pakcages marked for minor: @(CheckForMinor)" />
+    <Message Text="Packages unmarked: @(NoCheckFor)" />
+    <!-- Latest any version change check -->
+    <PropertyGroup>
+      <ExcludeOutdatedPackages>@(NoCheckFor);@(CheckForMinor)</ExcludeOutdatedPackages>
+    </PropertyGroup>
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="OutdatedPackageCommand" Properties="ExcludeOutdatedPackages=$(ExcludeOutdatedPackages)">
+      <Output TaskParameter="TargetOutputs" ItemName="OutdatedPackages" />
+    </MSBuild>
+    <!-- Latest minor and patch version change check -->
+    <PropertyGroup>
+      <ExcludeOutdatedPackages>@(NoCheckFor);@(CheckForLatest)</ExcludeOutdatedPackages>
+    </PropertyGroup>
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="OutdatedPackageCommand" Properties="ExcludeOutdatedPackages=$(ExcludeOutdatedPackages);OutdatedPackageCheckOptions=--highest-minor">
+      <Output TaskParameter="TargetOutputs" ItemName="OutdatedPackages" />
+    </MSBuild>
+    <!-- Not running the patch level due to performance impact.  Running the command twice is slow enough already. -->
+    <!-- Stopwatch -->
+    <PropertyGroup>
+      <ElapsedTicks>$([MSBuild]::Subtract($([System.DateTime]::UtcNow.Ticks), $(StartTicks)))</ElapsedTicks>
+      <Elapsed>$([System.TimeSpan]::FromTicks($(ElapsedTicks)).TotalSeconds)</Elapsed>
+    </PropertyGroup>
+    <Message Importance="High" Text="Packages checked in $(Elapsed) s for $(MSBuildProjectFullPath)."/>
+  </Target>
+
+  <Target Name="OutdatedPackageCommand" Outputs="@(OutdatedPackages)">
+    <Message Text="Parameters: 1:$(ExcludeOutdatedPackages), 2:$(OutdatedPackageCheckOptions)" />
+    <PropertyGroup>
+      <!-- Fix for omnisharp setting the MSBuildExtensionsPath to a bad value -->
+      <_ExecCommand Condition="'$(OS)' == 'Windows_NT'">set "MSBuildExtensionsPath=$(MSBuildExtensionsPath)" &amp;</_ExecCommand>
+      <_ExecCommand Condition="'$(OS)' != 'Windows_NT'">export 'MSBuildExtensionsPath=$(MSBuildExtensionsPath)';</_ExecCommand>
+      <_ExecCommand>$(_ExecCommand) dotnet list package --outdated $(OutdatedPackageCheckOptions) 2&gt;&amp;1</_ExecCommand>
+    </PropertyGroup>
+    <Message Text="$(_ExecCommand)" />
+    <Exec Command="$(_ExecCommand)" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" WorkingDirectory="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="ConsoleOutput" ItemName="OutdatedPackagesRaw" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <Message Text="@(OutdatedPackagesRaw)" />
+    <ItemGroup>
+      <!-- Format Expectation: Package lines begin with '>' and contain 4 columns: name, requested, resolved, latest; none of which have whitespace in the values. -->
+      <_OutdatedPackages Include="%(OutdatedPackagesRaw.Identity)" Condition="'@(OutdatedPackagesRaw)' != '' And '$([System.String]::Copy(&quot;%(Identity)&quot;).Substring(0, 1))' == '>'" />
+      <OutdatedPackages Include='$([System.String]::Copy("%(_OutdatedPackages.Identity)").Split(" ", StringSplitOptions.RemoveEmptyEntries)[1])' Exclude="$(ExcludeOutdatedPackages)" Condition="'@(_OutdatedPackages)' != ''">
+        <Requested>$([System.String]::Copy("%(_OutdatedPackages.Identity)").Split(" ", StringSplitOptions.RemoveEmptyEntries)[2])</Requested>
+        <Resolved>$([System.String]::Copy("%(_OutdatedPackages.Identity)").Split(" ", StringSplitOptions.RemoveEmptyEntries)[3])</Resolved>
+        <Latest>$([System.String]::Copy("%(_OutdatedPackages.Identity)").Split(" ", StringSplitOptions.RemoveEmptyEntries)[4])</Latest>
+      </OutdatedPackages>
+      <_Errors Include="%(OutdatedPackagesRaw.Identity)" Condition="'@(OutdatedPackagesRaw)' != '' And '$([System.String]::Copy(&quot;%(Identity)&quot;).Substring(0, 6).ToLowerInvariant())' == 'error:'" />
+    </ItemGroup>
+    <Warning File="$(MSBuildThisFile)" Text="dotet list command failed for $(MSBuildProjectFullPath)." Condition="'$(MSBuildLastExitCode)' != '0'" />
+    <Warning File="$(MSBuildThisFile)" Text="%(_Errors.Identity)" Condition="'@(_Errors)' != '' And '$(MSBuildLastExitCode)' != '0'" />
+    <Message Text="@(OutdatedPackages)" />
+  </Target>
+
+  <Target Name="OutdatedPackageCheckResult" AfterTargets="OutdatedPackageCheck" Condition="'@(OutdatedPackages)' != ''">
+    <Warning Code="OUTDATED" File="$(MSBuildProjectFullPath)" Text="Using package %(OutdatedPackages.Identity) %(OutdatedPackages.Resolved), Latest %(OutdatedPackages.Latest)" Condition="'$(CheckPackageVersions.ToLowerInvariant())' != 'error'" />
+    <Error Code="OUTDATED" File="$(MSBuildProjectFullPath)" Text="Using package %(OutdatedPackages.Identity) %(OutdatedPackages.Resolved), Latest %(OutdatedPackages.Latest)" Condition="'$(CheckPackageVersions.ToLowerInvariant())' == 'error'" ContinueOnError="ErrorAndContinue" />
+  </Target>
+
+  <!-- Rules -->
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\rulesets\chartedcode.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+</Project>
