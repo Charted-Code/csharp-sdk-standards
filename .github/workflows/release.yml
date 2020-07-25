@@ -17,7 +17,7 @@ jobs:
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore --force
       - name: Package NuGet
         run: dotnet pack --configuration Release --no-restore --output .
       - uses: actions/upload-artifact@v2
