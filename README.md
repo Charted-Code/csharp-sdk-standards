@@ -38,7 +38,6 @@ property to your `.csproj` with a path to your ruleset file.
 Example `override.ruleset` file
 ```xml
 <RuleSet Name="Rules for ASP.NET Core" ToolsVersion="15.0">
-  <Include Path="classlibrary_child.ruleset" Action="Default" />
   <Rules AnalyzerId="Roslynator.CSharp.Analyzers" RuleNamespace="Roslynator.CSharp.Analyzers">
     <Rule Id="RCS1090" Action="None" />
   </Rules>
@@ -59,7 +58,7 @@ Add the `CheckFor` attribute to `PackageReference` nodes to explicitly check at 
 
 The property `CheckPackageVersions` can be set to `warn` (default), `error`, or `false` to disable all package checking.
 
-> If you are encountering timeouts on the outdated package check, increase the `CheckTimeout` property value (default 30000 milliseconds).
+> If you are encountering timeouts on the outdated package check, increase the `CheckPackageTimeout` property value (default 30000 milliseconds).
 
 ----
 

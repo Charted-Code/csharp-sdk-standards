@@ -56,10 +56,10 @@
   <!-- Outdated Packages Check -->
   <PropertyGroup>
     <CheckPackageVersions Condition="'$(CheckPackageVersions)' == ''">warn</CheckPackageVersions>
-    <!-- Disable when omnisharp is running a build -->
+    <!-- Disable when omnisharp is running a build, else vscode will display errors for the warnings -->
     <CheckPackageVersions Condition="$(MSBuildExtensionsPath.Contains('omnisharp'))">false</CheckPackageVersions>
     <CheckForDefault Condition="'$(CheckForDefault)' == ''">minor</CheckForDefault>
-    <CheckTimeout Condition="'$(CheckTimeout)' == ''">30000</CheckTimeout>
+    <CheckPackageTimeout Condition="'$(CheckPackageTimeout)' == ''">30000</CheckPackageTimeout>
   </PropertyGroup>
 
   <!-- Ideally this would only run as a part of restore, requires https://github.com/NuGet/Home/issues/7617 -->
@@ -112,7 +112,7 @@
       <_ExecCommand>$(_ExecCommand) dotnet list package --outdated $(OutdatedPackageCheckOptions) 2&gt;&amp;1</_ExecCommand>
     </PropertyGroup>
     <Message Text="$(_ExecCommand)" />
-    <Exec Command="$(_ExecCommand)" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" WorkingDirectory="$(MSBuildProjectDirectory)" Timeout="$(CheckTimeout)">
+    <Exec Command="$(_ExecCommand)" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" WorkingDirectory="$(MSBuildProjectDirectory)" Timeout="$(CheckPackageTimeout)">
       <Output TaskParameter="ConsoleOutput" ItemName="OutdatedPackagesRaw" />
       <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
     </Exec>
