@@ -14,6 +14,8 @@ Automatically generate the Version property based upon the Git Tag Version.  Als
 
 Disable by setting `UseStandardsGitVersioning` to `false`
 
+Support having prefixed tags trimmed by setting `StandardsGitTagPrefix` to the prefix value. Useful for monorepos.
+
 ### **- Code Standards RuleSet**
 
 Using [Roslynator](https://github.com/JosefPihrt/Roslynator).  Will output warnings or errors on build based on best practices or standards here at Charted Code.
@@ -56,6 +58,8 @@ Add the `CheckFor` attribute to `PackageReference` nodes to explicitly check at 
 ```
 
 The property `CheckPackageVersions` can be set to `warn` (default), `error`, or `false` to disable all package checking.
+
+> If you are encountering timeouts on the outdated package check, increase the `CheckTimeout` property value (default 30000 milliseconds).
 
 ----
 

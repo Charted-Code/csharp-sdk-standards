@@ -36,6 +36,8 @@
     <Message Importance="High" Text="ChartedCode.Sdk.Standards: No tag on this commit. Appending the short commit hash to the version. $(GitCommitHashShort)" Condition="'$(GitTagHere)' == ''" />
     <PropertyGroup>
       <GitTagVersion Condition="'$(GitTagVersion)' == ''">0.0.0</GitTagVersion>
+      <!-- Support custom tag prefixes for monorepos. If prefix not found in tag, fallback to default tag handling. -->
+      <GitTagVersion Condition="$(GitTagVersion.Length) &gt; $(StandardsGitTagPrefix.Length) AND '$(GitTagVersion.Substring(0, $(StandardsGitTagPrefix.Length)))' == '$(StandardsGitTagPrefix)'">$(GitTagVersion.Substring($(StandardsGitTagPrefix.Length)))</GitTagVersion>
       <!-- NuGet does not allow semver 'v' character at the beginning of the version string. -->
       <GitTagVersion Condition="'$(GitTagVersion.Substring(0, 1).ToUpperInvariant())' == 'V'">$(GitTagVersion.Substring(1))</GitTagVersion>
       <!-- When this commit does not have a tag, then it is not a release and needs a pre-release tag using short commit hash. -->
@@ -57,6 +59,7 @@
     <!-- Disable when omnisharp is running a build -->
     <CheckPackageVersions Condition="$(MSBuildExtensionsPath.Contains('omnisharp'))">false</CheckPackageVersions>
     <CheckForDefault Condition="'$(CheckForDefault)' == ''">minor</CheckForDefault>
+    <CheckTimeout Condition="'$(CheckTimeout)' == ''">30000</CheckTimeout>
   </PropertyGroup>
 
   <!-- Ideally this would only run as a part of restore, requires https://github.com/NuGet/Home/issues/7617 -->
@@ -109,7 +112,7 @@
       <_ExecCommand>$(_ExecCommand) dotnet list package --outdated $(OutdatedPackageCheckOptions) 2&gt;&amp;1</_ExecCommand>
     </PropertyGroup>
     <Message Text="$(_ExecCommand)" />
-    <Exec Command="$(_ExecCommand)" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" WorkingDirectory="$(MSBuildProjectDirectory)">
+    <Exec Command="$(_ExecCommand)" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" WorkingDirectory="$(MSBuildProjectDirectory)" Timeout="$(CheckTimeout)">
       <Output TaskParameter="ConsoleOutput" ItemName="OutdatedPackagesRaw" />
       <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
     </Exec>
