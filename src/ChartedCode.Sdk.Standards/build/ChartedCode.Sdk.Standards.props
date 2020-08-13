@@ -23,7 +23,14 @@
     <PropertyGroup>
       <GitTagHere Condition="'$(MSBuildLastExitCode)' != '0'"></GitTagHere>
     </PropertyGroup>
-    <Exec Command="git describe --abbrev=0 --tags 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
+    <Exec Command="git describe --tags --match '$(StandardsGitTagPrefix)*' --abbrev=0 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" Condition="'$(StandardsGitTagPrefix)' != ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagVersion" />
+      <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitTagVersion Condition="'$(MSBuildLastExitCode)' != '0'"></GitTagVersion>
+    </PropertyGroup>
+    <Exec Command="git describe --abbrev=0 --tags 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true" Condition="'$(GitTagVersion)' == ''">
       <Output TaskParameter="ConsoleOutput" PropertyName="GitTagVersion" />
       <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
     </Exec>
