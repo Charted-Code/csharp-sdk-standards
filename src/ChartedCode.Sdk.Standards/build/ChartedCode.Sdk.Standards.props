@@ -45,7 +45,7 @@
       <GitTagVersion Condition="'$(GitTagVersion)' == ''">0.0.0</GitTagVersion>
       <!-- Support custom tag prefixes for monorepos. If prefix not found in tag, fallback to default tag handling. -->
       <GitTagVersion Condition="$(GitTagVersion.Length) &gt; $(StandardsGitTagPrefix.Length) AND '$(GitTagVersion.Substring(0, $(StandardsGitTagPrefix.Length)))' == '$(StandardsGitTagPrefix)'">$(GitTagVersion.Substring($(StandardsGitTagPrefix.Length)))</GitTagVersion>
-      <!-- NuGet does not allow semver 'v' character at the beginning of the version string. -->
+      <!-- NuGet does not allow semver 'v' character at the beginning of the version string. Strip it off. -->
       <GitTagVersion Condition="'$(GitTagVersion.Substring(0, 1).ToUpperInvariant())' == 'V'">$(GitTagVersion.Substring(1))</GitTagVersion>
       <!-- When this commit does not have a tag, then it is not a release and needs a pre-release tag using short commit hash. -->
       <!-- Prefix the suffix with x since some semver 1.0 implementations only allow suffixes starting with alpha characters. -->
