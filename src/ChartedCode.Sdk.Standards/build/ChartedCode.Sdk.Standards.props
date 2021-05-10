@@ -134,7 +134,7 @@
       </OutdatedPackages>
       <_Errors Include="%(OutdatedPackagesRaw.Identity)" Condition="'@(OutdatedPackagesRaw)' != '' And '$([System.String]::Copy(&quot;%(Identity)&quot;).Substring(0, 6).ToLowerInvariant())' == 'error:'" />
     </ItemGroup>
-    <Warning File="$(MSBuildThisFile)" Text="dotet list command failed for $(MSBuildProjectFullPath)." Condition="'$(MSBuildLastExitCode)' != '0'" />
+    <Warning File="$(MSBuildThisFile)" Text="dotnet list command failed for $(MSBuildProjectFullPath)." Condition="'$(MSBuildLastExitCode)' != '0'" />
     <Warning File="$(MSBuildThisFile)" Text="%(_Errors.Identity)" Condition="'@(_Errors)' != '' And '$(MSBuildLastExitCode)' != '0'" />
     <Message Text="@(OutdatedPackages)" />
   </Target>
