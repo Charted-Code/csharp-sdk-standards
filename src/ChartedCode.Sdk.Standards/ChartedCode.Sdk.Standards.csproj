@@ -17,7 +17,7 @@
     <PackageDescription>Charted Code C# Standards ruleset (using Roslynator analyzers) and a git versioning helper.</PackageDescription>
     <PackageTags>analyzers;git tag;versioning</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/TheChartedCode/csharp-sdk-standards</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Charted-Code/csharp-sdk-standards</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
