@@ -1,5 +1,15 @@
 <Project InitialTargets="StandardsGitVersioning" TreatAsLocalProperty="GitFullPath;GitCommitHash;GitCommitHashShort;GitTagHere;GitTagVersion;MSBuildLastExitCode;OutdatedPackagesRaw;OutdatedPackages;_OutdatedPackages;_Errors;StartTicks;ElapsedTicks;Elapsed;_ExecCommand">
 
+  <!-- Enable Package Lock generation by default -->
+  <!-- Information: https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#enabling-lock-file -->
+  <PropertyGroup>
+    <RestorePackagesWithLockFile Condition="'$(CheckPackageVersions.ToLowerInvariant())' != 'false'">true</RestorePackagesWithLockFile>
+    <!-- Only enforce the package lock by default on CI environments -->
+    <RestoreLockedMode Condition="'$(RestoreLockedMode.ToLowerInvariant())' != 'false' And '$(CI)' != ''">true</RestoreLockedMode>
+    <!-- Automatically look up the latest version available for fuzzy matched package versions -->
+    <RestoreForceEvaluate Condition="'$(RestoreForceEvaluate.ToLowerInvariant())' != 'false'">true</RestoreForceEvaluate>
+  </PropertyGroup>
+
   <!-- Git Tag Versioning -->
   <Target Name="StandardsGitVersioning" Condition="'$(UseStandardsGitVersioning.ToLowerInvariant())' != 'false'">
     <Exec Command="git rev-parse --verify HEAD 2&gt;&amp;1" EchoOff='true' StandardErrorImportance='low' StandardOutputImportance='low' ConsoleToMSBuild="true" ContinueOnError="true" IgnoreExitCode="true">
