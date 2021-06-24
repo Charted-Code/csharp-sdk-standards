@@ -8,6 +8,14 @@ See the **[releases](./releases)** page for version and change information.
 
 ## Features
 
+### **- Package Lock**
+
+Default to utilizing `RestorePackagesWithLockFile` as `true` to enable nuget `package.lock.json` functionality which prevents un-vetted dependency changes.
+
+Also default `RestoreLockedMode` to `true` when in a `CI` environment.
+
+The package dependency graph will be re-evaluated and update the lock file when `RestoreLockedMode` is `false`; which is the default when not in a `CI` environment.
+
 ### **- Git Versioning**
 
 Automatically generate the Version property based upon the Git Tag Version.  Also appends the commit hash to the Description property.
