@@ -1,9 +1,9 @@
 <Project InitialTargets="StandardsGitVersioning" TreatAsLocalProperty="GitFullPath;GitCommitHash;GitCommitHashShort;GitTagHere;GitTagVersion;MSBuildLastExitCode;OutdatedPackagesRaw;OutdatedPackages;_OutdatedPackages;_Errors;StartTicks;ElapsedTicks;Elapsed;_ExecCommand">
 
-  <!-- Enable Package Lock generation by default -->
+  <!-- Enable Package Lock generation by default for applications -->
   <!-- Information: https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#enabling-lock-file -->
   <PropertyGroup>
-    <RestorePackagesWithLockFile Condition="'$(CheckPackageVersions.ToLowerInvariant())' != 'false'">true</RestorePackagesWithLockFile>
+    <RestorePackagesWithLockFile Condition="'$(CheckPackageVersions.ToLowerInvariant())' != 'false' And '$(OutputType)' != 'Library'">true</RestorePackagesWithLockFile>
     <!-- Only enforce the package lock by default on CI environments -->
     <RestoreLockedMode Condition="'$(RestoreLockedMode.ToLowerInvariant())' != 'false' And '$(CI)' != ''">true</RestoreLockedMode>
     <!-- Automatically look up the latest version available for fuzzy matched package versions -->
