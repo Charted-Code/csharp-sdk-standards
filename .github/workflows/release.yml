@@ -17,7 +17,7 @@ jobs:
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Restore Dependencies
-        run: dotnet restore --force
+        run: dotnet restore --force --no-cache
       - name: Depenceny Graph
         run: dotnet list package --include-transitive || true 
       - name: Package NuGet
