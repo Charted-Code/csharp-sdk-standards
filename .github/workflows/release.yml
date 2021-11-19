@@ -12,12 +12,14 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.201
+          dotnet-version: '3.1.x'
           source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Install dependencies
+      - name: Restore Dependencies
         run: dotnet restore --force
+      - name: Depenceny Graph
+        run: dotnet list package --include-transitive || true 
       - name: Package NuGet
         run: dotnet pack --configuration Release --no-restore --output .
       - uses: actions/upload-artifact@v2
