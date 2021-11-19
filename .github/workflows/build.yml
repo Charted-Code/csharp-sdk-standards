@@ -1,6 +1,7 @@
 name: .NET Core Build
 
 on:
+  workflow_dispatch:
   push:
     branches: [master]
   pull_request:
@@ -8,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: build & test
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,7 +17,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.201
-      - name: Install dependencies
+      - name: Restore Dependencies
         run: dotnet restore --force
+      - name: Depenceny Graph
+        run: dotnet list package --include-transitive || true 
       - name: Build
         run: dotnet build --configuration Release --no-restore
