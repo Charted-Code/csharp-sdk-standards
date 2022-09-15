@@ -18,7 +18,7 @@ jobs:
           dotnet-version: '6.0.x'
       - name: Restore Dependencies
         run: dotnet restore --force --no-cache
-      - name: Depenceny Graph
+      - name: Dependency Graph
         run: dotnet list package --include-transitive || true 
       - name: Build
         run: dotnet build --configuration Release --no-restore
