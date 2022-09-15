@@ -18,7 +18,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Restore Dependencies
         run: dotnet restore --force --no-cache
-      - name: Depenceny Graph
+      - name: Dependency Graph
         run: dotnet list package --include-transitive || true 
       - name: Package NuGet
         run: dotnet pack --configuration Release --no-restore --output .
