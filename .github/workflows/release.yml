@@ -22,7 +22,9 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore --force --no-cache
       - name: Dependency Graph
-        run: dotnet list package --include-transitive || true 
+        run: dotnet list package --include-transitive || true
+      - name: Vulnerability Check
+        run: dotnet list package --vulnerable --include-transitive
       - name: Package NuGet
         run: dotnet pack --configuration Release --no-restore --output .
       - uses: actions/upload-artifact@v3
