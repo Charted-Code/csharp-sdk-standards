@@ -27,3 +27,5 @@ jobs:
         run: dotnet list package --vulnerable --include-transitive
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      - name: Package NuGet
+        run: dotnet pack --configuration Release --no-restore --output .
