@@ -3,7 +3,6 @@ name: .NET Core Build
 on:
   workflow_dispatch:
   push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -11,15 +10,22 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: '6.0.x'
       - name: Restore Dependencies
         run: dotnet restore --force --no-cache
-      - name: Depenceny Graph
-        run: dotnet list package --include-transitive || true 
+      - name: Dependency Graph
+        run: dotnet list package --include-transitive || true
+      - name: Vulnerability Check
+        run: dotnet list package --vulnerable --include-transitive
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      - name: Package NuGet
+        run: dotnet pack --configuration Release --no-restore --output .
