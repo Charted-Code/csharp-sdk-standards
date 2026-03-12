@@ -22,7 +22,7 @@ Automatically generate the Version property based upon the Git Tag Version.  Als
 
 Disable by setting `UseStandardsGitVersioning` to `false`
 
-Support having prefixed tags trimmed by setting `StandardsGitTagPrefix` to the prefix value. Useful for monorepos. The prefix may not contain any hyphens (`-`) as that is the tag delimiter character. If using the prefix, note that at least one prefix tag will need to exist on the repo else builds might not work. For if no instances of that prefix tag exist, this will pull in the latest available tag and if that is another prefix tag, the build will fail.  Init prefix tags on the repo with addition of this property (example: `git tag myprefix-0.0.0-pre`).
+Additionally, support having prefixed tags trimmed by setting `StandardsGitTagPrefix` to the prefix value. Useful for monorepos with multiple tagging schemes. The prefix may not contain any hyphens (`-`) as that is the tag delimiter character. If using the prefix, note that at least one prefix tag will need to exist on the repo else builds might not work. For if no instances of that prefix tag exist, this will pull in the latest available tag and if that is another prefix tag, the build will fail.  Init prefix tags on the repo with addition of this property (example: `git tag myprefix-0.0.0-pre`).
 
 ### **- Code Standards RuleSet**
 
